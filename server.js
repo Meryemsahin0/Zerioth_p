@@ -58,9 +58,14 @@ app.use((req, res, next) => {
 
 // 5. EN ALT KISIMDAKİ "ROTA BULUNAMADI" KORUMASI (Catch-All)
 // Üstteki hiçbir rota tutmazsa burası çalışır. Artik '/' buraya takılmayacak.
-app.use((req, res) => {
-  res.status(404).json({ error: "Rota bulunamadı" });
-});
+app.use(cors({
+  origin: [
+    "http://localhost:5000", 
+    "https://phishing-sumilator-zerioth.onrender.com", // Arkadaşınınki (isteğe bağlı kalabilir)
+    "https://yeni-alinan-url-adresiniz.onrender.com"   // Sizin yeni Render URL'iniz
+  ],
+  credentials: true
+}));
 
 // 6. PORT VE LISTEN
 const PORT = process.env.PORT || 5000;
