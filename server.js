@@ -4,7 +4,7 @@ const path = require('path');
 
 const app = express();
 
-// 1. CORS AYARI: Hem yerelde hem Render üzerinde güvenli erişim sağlar
+// 1. CORS AYARI
 app.use(cors({
   origin: ["http://localhost:5000", "https://phishing-sumilator-zerioth.onrender.com"],
   credentials: true
@@ -12,15 +12,19 @@ app.use(cors({
 
 app.use(express.json());
 
-// 2. STATİK DOSYA YÖNLENDİRMESİ: index.html ve diğer dosyaları sunucu üzerinden besler
+// 2. ÖNCELİKLİ STATİK DOSYA VE ANA SAYFA SERVİSİ
+// Bu satır index.html'i doğrudan kök dizinde (/) otomatik olarak çalıştırır ve rotaların çakışmasını engeller
 app.use(express.static(__dirname));
 
-// Ana sayfaya girildiğinde direkt oyunu açar
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 3. FLAG KONTROL ENDPOINT'İ (MIDDLEWARE)
+// 3. SEPERATE ROUTES (Eğer alt klasörlerdeki rotaları kullanıyorsan buraya ekleyebilirsin)
+// Örn: const flagRoutes = require('./routes/flags');
+// app.use('/api', flagRoutes);
+
+// 4. FLAG KONTROL ENDPOINT'İ (MIDDLEWARE)
 app.use((req, res, next) => {
   if (req.path === '/api/flags/check' && req.method === 'POST') {
     const CORRECT_FLAGS = {
@@ -52,7 +56,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// 4. DİNAMİK PORT AYARI: Render'ın atayacağı portu yakalar, yoksa 5000'i kullanır
+// 5. EN ALT KISIMDAKİ "ROTA BULUNAMADI" KORUMASI (Catch-All)
+// Üstteki hiçbir rota tutmazsa burası çalışır. Artik '/' buraya takılmayacak.
+app.use((req, res) => {
+  res.status(404).json({ error: "Rota bulunamadı" });
+});
+
+// 6. PORT VE LISTEN
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`[+] Mu Kıtası Laboratuvarı Sunucusu port ${PORT} üzerinde aktif!`);
